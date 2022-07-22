@@ -1,3 +1,4 @@
 private_utils.py
 .env
 /__pycache
+storage.db
