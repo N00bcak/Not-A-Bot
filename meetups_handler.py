@@ -90,3 +90,13 @@ async def list_meetups(ctx):
         print(row)
         result += f"{row[0]}, {row[2]}, {row[3]}, {row[4]}\n"
     await ctx.respond(result)
+
+
+@meetups.command(description = "Join an available meetup!")
+async def join_meetup(ctx, meetup_id = discord.Option(str)):
+    result = ""
+    bot_db, cur = get_db()
+    for row in cur.execute("SELECT * FROM MEETUPS"):
+        print(row)
+        result += f"{row[0]}, {row[2]}, {row[3]}, {row[4]}\n"
+    await ctx.respond(result)

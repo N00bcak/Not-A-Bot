@@ -1,4 +1,5 @@
 private_utils.py
 .env
-/__pycache
+/__pycache__
 storage.db
+.git

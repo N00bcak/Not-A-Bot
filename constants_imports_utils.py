@@ -21,7 +21,7 @@ PIN_MSGS_CFG = {
 # Configuration for starboard.py
 STARBOARD_CFG = {
                 "emoji_list": ['⭐'], 
-                "min_count": 1, 
+                "min_count": 12, 
                 "embed_color": 0xFAD905, 
                 "starboard_channel": "starboard"
                 }
@@ -29,7 +29,7 @@ STARBOARD_CFG = {
 # Configuration for meetups_handler.py
 MEETUPS_CFG = {
                 "embed_color": 0x84F20F,
-                "meetups_channel": "starboard"
+                "meetups_channel": "meetups"
                 }
 
 # General utility functions used by multiple files

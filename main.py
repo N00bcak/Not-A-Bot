@@ -25,7 +25,7 @@ async def on_raw_reaction_add(payload):
         if payload.emoji.name in PIN_MSGS_CFG["emoji_list"]:
             await pin_msgs.pin(payload)
         elif payload.emoji.name in STARBOARD_CFG["emoji_list"]:
-            print("Triggered!")
+            # print("Triggered!")
             await starboard.check_sb(payload)
 
 @bot.event
