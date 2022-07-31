@@ -2,16 +2,20 @@ import discord
 import os
 import dotenv
 import sqlite3
+import json
+import re
 
 dotenv.load_dotenv()
 
 # Store your secrets in a .env file!
 TOKEN = os.getenv("BOT_TOKEN")
 GUILD = os.getenv("GUILD_ID")
-SECRET = [int(id_num) for id_num in  os.getenv("SECRET").split(',')]
+SECRET = [int(id_num) for id_num in os.getenv("SECRET").split(',')]
 
 # Client object for the Discord bot.
-bot = discord.Bot(debug_guilds = [GUILD])
+intents = discord.Intents.default()
+intents.members = True
+bot = discord.Bot(debug_guilds = [GUILD], intents = intents)
 
 # Configuration for pin_msgs.py
 PIN_MSGS_CFG = {
@@ -29,8 +33,9 @@ STARBOARD_CFG = {
 # Configuration for meetups_handler.py
 MEETUPS_CFG = {
                 "embed_color": 0x84F20F,
-                "meetups_channel": "meetups"
+                "meetups_channel": "meetups-bot"
                 }
+
 
 # General utility functions used by multiple files
 
@@ -39,7 +44,13 @@ async def get_message_from_payload(payload):
     reacted_msg = await channel.fetch_message(payload.message_id)
     return channel, reacted_msg
 
-# WIP
+# Guild related variables
+async def init_guild_variables():
+    guild = discord.utils.find(lambda x: str(x.id) == GUILD, bot.guilds)
+    guild_channel_list = await guild.fetch_channels()
+    return guild, guild_channel_list
+
+# Initiates a connection with our SQLite database
 def get_db():
     bot_db = sqlite3.connect("storage.db")
     cur = bot_db.cursor()
@@ -49,7 +60,7 @@ def get_db():
 
     if "meetups" not in db_list:
         # We don't have meetups data.
-        cur.execute("CREATE TABLE meetups (id, message_id, meetup_desc, meetup_time, meetup_location, participants)")
+        cur.execute("CREATE TABLE meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants)")
     
     if "birthdays" not in db_list:
         # We don't have birthday data.

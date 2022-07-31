@@ -2,7 +2,7 @@ from constants_imports_utils import *
 import private_utils
 import pin_msgs
 import starboard
-# import meetups_handler # <- WIP, disabled until tested and complete
+import meetups_handler # Still WIP, but I hope it's functional now.
 
 # This main file is the principal event listener for the bot. I'm not quite sure how to structure a file so here's how it's gonna go.
 # Using decorators because its more straightforward. 
@@ -39,7 +39,7 @@ async def on_raw_reaction_remove(payload):
 @bot.event
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
-    
-    guild = discord.utils.find(lambda x: str(x.id) == GUILD, bot.guilds)
+    guild, guild_channel_list = await init_guild_variables()
     print(f"We in the {guild.name} server.")
+    
 bot.run(TOKEN)

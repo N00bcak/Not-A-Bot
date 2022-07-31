@@ -15,7 +15,7 @@ async def check_sb(payload: discord.RawReactionActionEvent):
         # print(payload.emoji, reaction, str(payload.emoji) == str(reaction), reaction.count >= STARBOARD_CFG["min_count"])
         if str(payload.emoji) == str(reaction) \
             and reaction.count >= STARBOARD_CFG["min_count"] \
-            and not sb_msg.author.bot
+            and not sb_msg.author.bot \
             and sb_msg.channel != sb_channel:
 
                 sb_embed = discord.Embed(
