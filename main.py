@@ -41,5 +41,6 @@ async def on_ready():
     print(f"{bot.user} has connected to Discord!")
     guild, guild_channel_list = await init_guild_variables()
     print(f"We in the {guild.name} server.")
+    await meetups_handler.refresh_meetups()
     
 bot.run(TOKEN)

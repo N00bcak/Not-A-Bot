@@ -33,6 +33,9 @@ class MeetupView(discord.ui.View):
         else:
             await ctx.invoke(leave_meetup, meetup_id = msg_meetup_id)
 
+    def __init__(self):
+        super().__init__(timeout = None)
+
 def construct_meetup_embed(author: discord.User, \
                         meetup_id: str, \
                         meetup_desc: str, \
@@ -49,11 +52,29 @@ def construct_meetup_embed(author: discord.User, \
                                     )
     meetup_embed.set_author(name = author, icon_url = author.display_avatar)
     meetup_embed.set_footer(text = f"Join me by typing `/meetup join_meetup` or clicking the buttons below! (Meetup ID: {meetup_id})")
-    meetup_embed.add_field(name = "Participants", value = '\n'.join(json.loads(participants_ser)), inline = False)
+
+    participants = json.loads(participants_ser)
+    meetup_embed.add_field(name = "Participants", value = '\n'.join(participants) if len(participants) else "Not even the host wants to go for their own meetup :(", inline = False)
     meetup_embed.add_field(name = "Time", value = meetup_time)
     meetup_embed.add_field(name = "Location", value = meetup_location)
     
     return meetup_embed
+
+async def refresh_meetups():
+    # Improve the bot's resilience against restarts and... bug hunters.
+    # But if there is a better way to refresh buttons on messages after resets, you can tell me about it :D
+    
+    guild, guild_channel_list = await init_guild_variables()
+    bot_db, cur = get_db()
+
+    for row in bot_db.execute("SELECT * FROM meetups").fetchall():
+        meetup_id, author_mention, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = row
+
+        meetup_author = discord.utils.get(guild.members, mention = author_mention)
+        meetup_embed = construct_meetup_embed(meetup_author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)    
+        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
+        await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
 
 @meetups.command(description = "Add a new meetup!")
 async def add_meetup(ctx: discord.ApplicationContext, \
@@ -64,6 +85,7 @@ async def add_meetup(ctx: discord.ApplicationContext, \
 
     guild, guild_channel_list = await init_guild_variables()
     bot_db, cur = get_db()
+    
 
     # Ensure our meetup_id is unique in the database since we are using it as our primary key.
     # Also, that it is alphanumeric and it is not longer than 16 characters.
@@ -102,14 +124,15 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
     bot_db, cur = get_db()
 
     try:
-        _, author, meetup_msg_id, old_meetup_desc, old_meetup_time, old_meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
+        _, author_mention, meetup_msg_id, old_meetup_desc, old_meetup_time, old_meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
     except (sqlite3.Error, TypeError) as err:
         await ctx.send_response("This meetup doesn't exist :(", ephemeral = True)
         return None
-
-    # TODO: Check if the owner is the one editing this meetup. Otherwise, boot them out.
-    # That... would probably necessitate a transfer_ownership command.
-
+        
+    if ctx.author.mention != author_mention:
+        await ctx.send_response("You don't have perms to edit this message (ownership transfers coming soon). Please ask the person who created this meetup to edit it!", ephemeral = True)
+        return None
+    
     new_meetup_desc = meetup_desc if len(meetup_desc) else old_meetup_desc
     new_meetup_time = meetup_time if len(meetup_time) else old_meetup_time
     new_meetup_location = meetup_location if len(meetup_location) else old_meetup_location

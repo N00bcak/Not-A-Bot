@@ -33,7 +33,7 @@ STARBOARD_CFG = {
 # Configuration for meetups_handler.py
 MEETUPS_CFG = {
                 "embed_color": 0x84F20F,
-                "meetups_channel": "meetups-bot"
+                "meetups_channel": "starboard"
                 }
 
 
@@ -62,6 +62,7 @@ def get_db():
         # We don't have meetups data.
         cur.execute("CREATE TABLE meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants)")
     
+    # TODO: Birthday tracker. Probably simple enough but I'm out of time today.
     if "birthdays" not in db_list:
         # We don't have birthday data.
         cur.execute("CREATE TABLE birthdays (user, date)")
