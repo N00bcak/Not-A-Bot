@@ -16,7 +16,7 @@ class MeetupView(discord.ui.View):
         try:
             msg_meetup_id = re.search("(\(Meetup ID: )(\w+)(\))", interaction.message.embeds[0].footer.text).group(2)
         except TypeError as err:
-            print("Oops! Error!")
+            log.warning(f"Oops! Error: {err}")
             return None
         else:
             await ctx.invoke(join_meetup, meetup_id = msg_meetup_id)
@@ -28,7 +28,7 @@ class MeetupView(discord.ui.View):
         try:
             msg_meetup_id = re.search("(\(Meetup ID: )(\w+)(\))", interaction.message.embeds[0].footer.text).group(2)
         except TypeError as err:
-            print("Oops! Error!")
+            log.warning(f"Oops! Error: {err}")
             return None
         else:
             await ctx.invoke(leave_meetup, meetup_id = msg_meetup_id)
@@ -83,6 +83,7 @@ async def add_meetup(ctx: discord.ApplicationContext, \
                         meetup_time: discord.Option(str, "Set a time! (WIP: there are no input restrictions for now.)"), \
                         meetup_location: discord.Option(str, "Where shall we all meet?")):
 
+    log.info(f"{ctx.author.name} is trying to add a meetup!")
     guild, guild_channel_list = await init_guild_variables()
     bot_db, cur = get_db()
     
@@ -127,29 +128,29 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
         _, author_mention, meetup_msg_id, old_meetup_desc, old_meetup_time, old_meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
     except (sqlite3.Error, TypeError) as err:
         await ctx.send_response("This meetup doesn't exist :(", ephemeral = True)
-        return None
+        return 
+    else:
+        if ctx.author.mention != author_mention:
+            await ctx.send_response("You don't have perms to edit this message (ownership transfers coming soon). Please ask the person who created this meetup to edit it!", ephemeral = True)
+            return 
         
-    if ctx.author.mention != author_mention:
-        await ctx.send_response("You don't have perms to edit this message (ownership transfers coming soon). Please ask the person who created this meetup to edit it!", ephemeral = True)
-        return None
-    
-    new_meetup_desc = meetup_desc if len(meetup_desc) else old_meetup_desc
-    new_meetup_time = meetup_time if len(meetup_time) else old_meetup_time
-    new_meetup_location = meetup_location if len(meetup_location) else old_meetup_location
+        new_meetup_desc = meetup_desc if len(meetup_desc) else old_meetup_desc
+        new_meetup_time = meetup_time if len(meetup_time) else old_meetup_time
+        new_meetup_location = meetup_location if len(meetup_location) else old_meetup_location
 
-    meetup_embed = construct_meetup_embed(ctx.author, meetup_id, new_meetup_desc, new_meetup_time, new_meetup_location, participants_ser)    
-    meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
-    meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
-    
-    await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
-    
-    cur.execute(f"UPDATE meetups SET message_id = ?, meetup_desc = ?, meetup_time = ?, meetup_location = ? WHERE id = ?",
-        (meetup_msg_id, new_meetup_desc, new_meetup_time, new_meetup_location, meetup_id))
+        meetup_embed = construct_meetup_embed(ctx.author, meetup_id, new_meetup_desc, new_meetup_time, new_meetup_location, participants_ser)    
+        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
+        
+        await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
+        
+        cur.execute(f"UPDATE meetups SET message_id = ?, meetup_desc = ?, meetup_time = ?, meetup_location = ? WHERE id = ?",
+            (meetup_msg_id, new_meetup_desc, new_meetup_time, new_meetup_location, meetup_id))
 
-    bot_db.commit()
-    bot_db.close()
+        bot_db.commit()
+        bot_db.close()
 
-    await ctx.send_response("Meetup updated!", ephemeral = True)
+        await ctx.send_response("Meetup updated!", ephemeral = True)
 
 @meetups.command(description = "See the available meetups!")
 async def list_meetups(ctx):
@@ -166,12 +167,12 @@ async def join_meetup(ctx, meetup_id = discord.Option(str)):
         _, author, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
     except (sqlite3.Error, TypeError) as err:
         await ctx.send_response("This meetup doesn't exist :(", ephemeral = True)
-        return None
+        return 
     
     participants = json.loads(participants_ser)
     if ctx.author.mention in participants:
         await ctx.send_response("You already joined this meetup! Maybe you wanted to join another one instead? :O", ephemeral = True)
-        return None
+        return 
     else:
         participants.append(ctx.author.mention)
         participants_ser = json.dumps(participants)
@@ -199,12 +200,12 @@ async def leave_meetup(ctx, meetup_id = discord.Option(str)):
         _, author, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
     except (sqlite3.Error, TypeError) as err:
         await ctx.send_response("This meetup doesn't exist :(", ephemeral = True)
-        return None
+        return
     
     participants = json.loads(participants_ser)
     if ctx.author.mention not in participants:
         await ctx.send_response("You weren't already in this meetup! sus.", ephemeral = True)
-        return None
+        return
     else:
         participants.remove(ctx.author.mention)
         participants_ser = json.dumps(participants)

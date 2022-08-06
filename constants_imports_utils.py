@@ -4,8 +4,15 @@ import dotenv
 import sqlite3
 import json
 import re
+import asyncio
+import datetime as dt
+import logging
 
 dotenv.load_dotenv()
+logging.basicConfig(filename = "NotABot_log.txt",format = '[%(asctime)s] %(message)s')
+log = logging.getLogger()
+log.setLevel(logging.INFO)
+
 
 # Store your secrets in a .env file!
 TOKEN = os.getenv("BOT_TOKEN")
@@ -36,6 +43,11 @@ MEETUPS_CFG = {
                 "meetups_channel": "starboard"
                 }
 
+# Configuration for birthday_handler.py
+BIRTHDAY_CFG = {
+                "embed_color": 0x05EDED,
+                "birthday_channel": "starboard"
+                }
 
 # General utility functions used by multiple files
 
@@ -56,7 +68,7 @@ def get_db():
     cur = bot_db.cursor()
     db_list = [i[0] for i in cur.execute('''SELECT name FROM sqlite_master''').fetchall()]
     
-    print(db_list)
+    #print(db_list)
 
     if "meetups" not in db_list:
         # We don't have meetups data.
