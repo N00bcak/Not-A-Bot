@@ -6,10 +6,10 @@ async def check_sb(payload: discord.RawReactionActionEvent):
     
     # print(payload)
     channel, sb_msg = await get_message_from_payload(payload)
-
+    guild, guild_channel_list = await init_guild_variables()
     # print(sb_msg.reactions, sb_msg.content)
 
-    sb_channel = discord.utils.get(bot.get_all_channels(), name = STARBOARD_CFG["starboard_channel"])
+    sb_channel = discord.utils.get(guild_channel_list, name = STARBOARD_CFG["starboard_channel"])
     
     for reaction in sb_msg.reactions:
         # print(payload.emoji, reaction, str(payload.emoji) == str(reaction), reaction.count >= STARBOARD_CFG["min_count"])

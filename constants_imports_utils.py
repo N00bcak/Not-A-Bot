@@ -40,13 +40,13 @@ STARBOARD_CFG = {
 # Configuration for meetups_handler.py
 MEETUPS_CFG = {
                 "embed_color": 0x84F20F,
-                "meetups_channel": "starboard"
+                "meetups_channel": "meetups-bot"
                 }
 
 # Configuration for birthday_handler.py
 BIRTHDAY_CFG = {
                 "embed_color": 0x05EDED,
-                "birthday_channel": "starboard"
+                "birthday_channel": "birthday"
                 }
 
 # General utility functions used by multiple files
