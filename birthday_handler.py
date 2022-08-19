@@ -7,10 +7,10 @@ async def birthday_loop():
     
     while True:
 
-        tmwdatetime = dt.datetime.combine(dt.date.today() + dt.timedelta(days = 1), dt.time(microsecond = 10000))
+        tmwdatetime = dt.datetime.combine(dt.date.today() + dt.timedelta(days = 1), dt.time())
         wait_sec = dt.timedelta(seconds = (tmwdatetime - dt.datetime.now()).seconds, microseconds = (tmwdatetime - dt.datetime.now()).microseconds)
         log.info(f"We will update the birthday again on {dt.datetime.now() + wait_sec}.")
-        await asyncio.sleep(wait_sec.seconds + wait_sec.microseconds)
+        await asyncio.sleep(wait_sec.seconds + wait_sec.microseconds / 1000000)
         
         # When it is midnight, run this routine:
         log.info(f"Oh boy, it's time to report birthdays for the date {dt.date.today().strftime('%d/%m')}!")
@@ -52,8 +52,7 @@ async def set_birthday(ctx: discord.ApplicationContext, date: str):
         await ctx.send_response("That's not a birthday I can recognize! (I now accept dd/mm, d/m, dd/m, d/mm formats, e.g. for 5 Aug, type '5/08', '05/8', '5/8', or '05/08')", ephemeral = True)
         log.warning(f"{ctx.author.name} sent an invalid birthday.")
     else:
-        day, month = date.split("/")
-        if len(day) == 1: day = "0" + day
+        day, month = [s.rjust(2, "0") for s in date.split("/")]
         if len(month) == 1: month= "0" + month
         date = day + "/" + month
         if len(cur.execute("SELECT * FROM birthdays WHERE user = ?", (ctx.author.mention,)).fetchall()):
