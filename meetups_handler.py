@@ -1,7 +1,5 @@
 from constants_imports_utils import *
 
-# WIP, VERY OBVIOUSLY NOT COMPLETE.
-# TODO: Catch all possible error types over time and handle them so the bot doesn't straight up die.
 # TODO: There are also sections containing repeated code. KIV for truncation opportunities.
 
 meetups = bot.create_group("meetups", "Handle meetups!")
@@ -90,30 +88,27 @@ async def add_meetup(ctx: discord.ApplicationContext, \
 
     # Ensure our meetup_id is unique in the database since we are using it as our primary key.
     # Also, that it is alphanumeric and it is not longer than 16 characters.
-    if not meetup_id.isalpha():
-        await ctx.send_response("Not a valid ID! (Please use only numbers and letters for your ID!)")
-        return 
+    if not meetup_id.isalnum():
+        await ctx.send_response("Not a valid ID! (Please use only numbers and letters for your ID!)", ephemeral = True)
     elif len(meetup_id) > 16:
-        await ctx.send_response("Not a valid ID! (Please make your ID between 8 and 16 characters long!)")
-        return 
+        await ctx.send_response("Not a valid ID! (Please make your ID between 8 and 16 characters long!)", ephemeral = True)
     elif len(cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchall()):
         await ctx.send_response("There is already a meetup with this name! Choose another name please!", ephemeral = True)
-        return
-    
-    # Our participants list will basically be a collection of the names of individuals attending the meetup.
-    participants = [ctx.author.mention]
-    # Participants, SERialized.
-    participants_ser = json.dumps(participants)
+    else:
+        # Our participants list will basically be a collection of the names of individuals attending the meetup.
+        participants = [ctx.author.mention]
+        # Participants, SERialized.
+        participants_ser = json.dumps(participants)
 
-    meetup_embed = construct_meetup_embed(ctx.author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)
-    meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
-    meetup_msg = await meetups_channel.send(embed = meetup_embed, view = MeetupView())
-    
-    cur.execute("INSERT INTO meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (meetup_id, ctx.author.mention, meetup_msg.id, meetup_desc, meetup_time, meetup_location, participants_ser))
-    bot_db.commit()
-    bot_db.close()
-    await ctx.send_response(f"Meetup created! Check <#{meetups_channel.id}> for the meetup!", ephemeral = True)
+        meetup_embed = construct_meetup_embed(ctx.author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)
+        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetup_msg = await meetups_channel.send(embed = meetup_embed, view = MeetupView())
+        
+        cur.execute("INSERT INTO meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (meetup_id, ctx.author.mention, meetup_msg.id, meetup_desc, meetup_time, meetup_location, participants_ser))
+        bot_db.commit()
+        bot_db.close()
+        await ctx.send_response(f"Meetup created! Check <#{meetups_channel.id}> for the meetup!", ephemeral = True)
 
 @meetups.command(description = "Edit an existing meetup.")
 async def edit_meetup(ctx, meetup_id: discord.Option(str), \

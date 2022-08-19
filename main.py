@@ -4,6 +4,7 @@ import pin_msgs
 import starboard
 import meetups_handler
 import birthday_handler
+import image_flipper
 
 # This main file is the principal event listener for the bot. I'm not quite sure how to structure a file so here's how it's gonna go.
 # Using decorators because its more straightforward. 

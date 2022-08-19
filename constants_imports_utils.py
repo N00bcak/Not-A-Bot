@@ -5,8 +5,11 @@ import sqlite3
 import json
 import re
 import asyncio
+import io
 import datetime as dt
 import logging
+import requests
+from PIL import Image, ImageChops
 
 dotenv.load_dotenv()
 logging.basicConfig(filename = "NotABot_log.txt",format = '[%(asctime)s] %(message)s')
@@ -74,7 +77,6 @@ def get_db():
         # We don't have meetups data.
         cur.execute("CREATE TABLE meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants)")
     
-    # TODO: Birthday tracker. Probably simple enough but I'm out of time today.
     if "birthdays" not in db_list:
         # We don't have birthday data.
         cur.execute("CREATE TABLE birthdays (user, date)")
