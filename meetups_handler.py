@@ -78,7 +78,7 @@ async def refresh_meetups():
 async def add_meetup(ctx: discord.ApplicationContext, \
                         meetup_id: discord.Option(str, "Name your meetup!"), \
                         meetup_desc: discord.Option(str, "Describe your meetup!"), \
-                        meetup_time: discord.Option(str, "Set a time! (WIP: there are no input restrictions for now.)"), \
+                        meetup_time: discord.Option(str, "Set a time!"), \
                         meetup_location: discord.Option(str, "Where shall we all meet?")):
 
     log.info(f"{ctx.author.name} is trying to add a meetup!")
@@ -146,11 +146,6 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
         bot_db.close()
 
         await ctx.send_response("Meetup updated!", ephemeral = True)
-
-@meetups.command(description = "See the available meetups!")
-async def list_meetups(ctx):
-    await ctx.send_response("Hi, this feature hasn't been implemented yet because I couldn't decide whether this'd be useful or not. The command still exists only because Discord is painfully slow to register/deregister new SlashCommands.", ephemeral = True)
-
 
 @meetups.command(description = "Join an available meetup!")
 async def join_meetup(ctx, meetup_id = discord.Option(str)):

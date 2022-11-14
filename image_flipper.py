@@ -17,6 +17,8 @@ async def image_flip(ctx: discord.ApplicationContext, \
         "invert": 180
     }
 
+    accepted_image_formats = ["image/png", "image/jpeg", "image/jpg", "image/tiff", "image/bmp"]
+
     with ctx.channel.typing():
         try:
             target_message = await ctx.channel.fetch_message(int(msg_id))
@@ -24,16 +26,18 @@ async def image_flip(ctx: discord.ApplicationContext, \
             ctx.send_response("If you sent a valid message ID, I haven't figured out what to do with private channels! \nSo until then, I am only permitted to rotate images inside the channels they were sent :(\nIn the case that you DIDN'T send a proper ID, check again?)", ephemeral = True)
             return
         
-        msg_images = list(filter(lambda x: x.content_type.startswith("image"), target_message.attachments))
+        msg_images = list(filter(lambda x: x.content_type in accepted_image_formats, target_message.attachments))
 
         # Should I prevent spam by blocking rotations of bot images? On the grounds that that could be useful, I will not... for now...
+        if not len(msg_images):
+            ctx.send_response("I could not find any valid images here (supported formats: .png, .jpg, .jpeg, .tiff, .bmp)")
+        else:
+            try:
+                target_image = Image.open(requests.get(msg_images[int(image_no) - 1].url, stream = True).raw)
+            except IndexError:
+                ctx.send_response("The image number you provided was invalid :smadge:", ephemeral = True)
+                return
 
-        try:
-            target_image = Image.open(requests.get(msg_images[int(image_no) - 1].url, stream = True).raw)
-        except IndexError:
-            ctx.send_response("The image number you provided was invalid :smadge:", ephemeral = True)
-            return
-        
         try:
             # Basically, we rotate the image as desired, and try to fit the whole rotated image into the, well, Image.
             # We then use a black image to work out (approximately) where we should crop the target image.
