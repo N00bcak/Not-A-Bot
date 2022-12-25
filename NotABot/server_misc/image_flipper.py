@@ -27,19 +27,19 @@ async def image_flip(ctx: discord.ApplicationContext, \
         try:
             target_message = await ctx.channel.fetch_message(int(msg_id))
         except discord.NotFound:
-            ctx.send_response("If you sent a valid message ID, I haven't figured out what to do with private channels! \nSo until then, I am only permitted to rotate images inside the channels they were sent :(\nIn the case that you DIDN'T send a proper ID, check again?)", ephemeral = True)
+            await ctx.send_response("If you sent a valid message ID, I haven't figured out what to do with private channels! \nSo until then, I am only permitted to rotate images inside the channels they were sent :(\nIn the case that you DIDN'T send a proper ID, check again?)", ephemeral = True)
             return
         
         msg_images = list(filter(lambda x: x.content_type in accepted_image_formats, target_message.attachments))
 
         # Should I prevent spam by blocking rotations of bot images? On the grounds that that could be useful, I will not... for now...
         if not len(msg_images):
-            ctx.send_response("I could not find any valid images here (supported formats: .png, .jpg, .jpeg, .tiff, .bmp)")
+            await ctx.send_response("I could not find any valid images here (supported formats: .png, .jpg, .jpeg, .tiff, .bmp)")
         else:
             try:
                 target_image = Image.open(requests.get(msg_images[int(image_no) - 1].url, stream = True).raw)
             except IndexError:
-                ctx.send_response("The image number you provided was invalid :smadge:", ephemeral = True)
+                await ctx.send_response("The image number you provided was invalid :smadge:", ephemeral = True)
                 return
 
         try:
@@ -54,7 +54,7 @@ async def image_flip(ctx: discord.ApplicationContext, \
             target_image.resize(target_image_size, box = scaffold.getbbox())
             print("Great success!")
         except KeyError:
-            ctx.send_response("Invalid orientation >:( (Don't tell Twitter I said that.)", ephemeral = True)
+            await ctx.send_response("Invalid orientation >:( (Don't tell Twitter I said that.)", ephemeral = True)
             return
 
     with io.BytesIO() as buffer:
