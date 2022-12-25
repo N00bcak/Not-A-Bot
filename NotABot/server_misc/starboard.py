@@ -1,25 +1,26 @@
 # Starboard checker.
-from constants_imports_utils import *
+from NotABot.common import bot, cfg, general_utils
+import discord
 
 
 async def check_sb(payload: discord.RawReactionActionEvent):
     
     # print(payload)
-    channel, sb_msg = await get_message_from_payload(payload)
-    guild, guild_channel_list = await init_guild_variables()
+    channel, sb_msg = await general_utils.get_message_from_payload(payload)
+    guild, guild_channel_list = await general_utils.init_guild_variables()
     # print(sb_msg.reactions, sb_msg.content)
 
-    sb_channel = discord.utils.get(guild_channel_list, name = STARBOARD_CFG["starboard_channel"])
+    sb_channel = discord.utils.get(guild_channel_list, name = cfg.STARBOARD_CFG["starboard_channel"])
     
     for reaction in sb_msg.reactions:
         # print(payload.emoji, reaction, str(payload.emoji) == str(reaction), reaction.count >= STARBOARD_CFG["min_count"])
         if str(payload.emoji) == str(reaction) \
-            and reaction.count >= STARBOARD_CFG["min_count"] \
+            and reaction.count >= cfg.STARBOARD_CFG["min_count"] \
             and not sb_msg.author.bot \
             and sb_msg.channel != sb_channel:
 
                 sb_embed = discord.Embed(
-                        color = STARBOARD_CFG["embed_color"],
+                        color = cfg.STARBOARD_CFG["embed_color"],
                         title = "IS A STAR!",
                         description = f"[Link]({sb_msg.jump_url})\n" + sb_msg.content
                         )

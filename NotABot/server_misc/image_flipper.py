@@ -1,4 +1,8 @@
-from constants_imports_utils import *
+from NotABot.common import bot
+import discord
+import requests
+from PIL import Image, ImageChops
+import io
 
 @bot.command(description = "Flip an image to spare your necks (only supports right angle turns atm)!")
 async def image_flip(ctx: discord.ApplicationContext, \
@@ -48,7 +52,7 @@ async def image_flip(ctx: discord.ApplicationContext, \
             scaffold = ImageChops.difference(target_image, blackspace)
             
             target_image.resize(target_image_size, box = scaffold.getbbox())
-            
+            print("Great success!")
         except KeyError:
             ctx.send_response("Invalid orientation >:( (Don't tell Twitter I said that.)", ephemeral = True)
             return

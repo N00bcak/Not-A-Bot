@@ -1,8 +1,13 @@
-from constants_imports_utils import *
+from NotABot.common import bot, log, cfg, general_utils, GUILD
+import discord
+import asyncio
+import sqlite3
+import json
+import re
 
 # TODO: There are also sections containing repeated code. KIV for truncation opportunities.
 
-meetups = bot.create_group("meetups", "Handle meetups!")
+meetups = bot.create_group(name = "meetups", description = "Handle meetups!")
 
 class MeetupView(discord.ui.View):
     # A subclass of Pycord's View that includes buttons to interact with meetups.
@@ -44,7 +49,7 @@ def construct_meetup_embed(author: discord.User, \
     # Helper function that creates the meetup embed.
     # This is so I don't have to write the same code over and over again.
     meetup_embed = discord.Embed(
-                                    color = MEETUPS_CFG["embed_color"],
+                                    color = cfg.MEETUPS_CFG["embed_color"],
                                     title = "proposes a meetup!",
                                     description = f"{meetup_desc}"
                                     )
@@ -62,15 +67,15 @@ async def refresh_meetups():
     # Improve the bot's resilience against restarts and... bug hunters.
     # But if there is a better way to refresh buttons on messages after resets, you can tell me about it :D
     
-    guild, guild_channel_list = await init_guild_variables()
-    bot_db, cur = get_db()
+    guild, guild_channel_list = await general_utils.init_guild_variables()
+    bot_db, cur = general_utils.get_db()
 
     for row in bot_db.execute("SELECT * FROM meetups").fetchall():
         meetup_id, author_mention, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = row
 
         meetup_author = discord.utils.get(guild.members, mention = author_mention)
         meetup_embed = construct_meetup_embed(meetup_author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)    
-        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetups_channel = discord.utils.get(guild_channel_list, name = cfg.MEETUPS_CFG["meetups_channel"])
         meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
         await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
 
@@ -82,8 +87,8 @@ async def add_meetup(ctx: discord.ApplicationContext, \
                         meetup_location: discord.Option(str, "Where shall we all meet?")):
 
     log.info(f"{ctx.author.name} is trying to add a meetup!")
-    guild, guild_channel_list = await init_guild_variables()
-    bot_db, cur = get_db()
+    guild, guild_channel_list = await general_utils.init_guild_variables()
+    bot_db, cur = general_utils.get_db()
     
 
     # Ensure our meetup_id is unique in the database since we are using it as our primary key.
@@ -101,7 +106,7 @@ async def add_meetup(ctx: discord.ApplicationContext, \
         participants_ser = json.dumps(participants)
 
         meetup_embed = construct_meetup_embed(ctx.author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)
-        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetups_channel = discord.utils.get(guild_channel_list, name = cfg.MEETUPS_CFG["meetups_channel"])
         meetup_msg = await meetups_channel.send(embed = meetup_embed, view = MeetupView())
         
         cur.execute("INSERT INTO meetups (id, meetup_owner, message_id, meetup_desc, meetup_time, meetup_location, participants) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -116,8 +121,8 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
                         meetup_time: discord.Option(str, "Enter a new time! (WIP: there are no input restrictions for now.)", required = False, default = ''), \
                         meetup_location: discord.Option(str, "Enter a new location!", required = False, default = '')):
 
-    guild, guild_channel_list = await init_guild_variables()
-    bot_db, cur = get_db()
+    guild, guild_channel_list = await general_utils.init_guild_variables()
+    bot_db, cur = general_utils.get_db()
 
     try:
         _, author_mention, meetup_msg_id, old_meetup_desc, old_meetup_time, old_meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
@@ -134,7 +139,7 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
         new_meetup_location = meetup_location if len(meetup_location) else old_meetup_location
 
         meetup_embed = construct_meetup_embed(ctx.author, meetup_id, new_meetup_desc, new_meetup_time, new_meetup_location, participants_ser)    
-        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetups_channel = discord.utils.get(guild_channel_list, name = cfg.MEETUPS_CFG["meetups_channel"])
         meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
         
         await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
@@ -150,8 +155,8 @@ async def edit_meetup(ctx, meetup_id: discord.Option(str), \
 @meetups.command(description = "Join an available meetup!")
 async def join_meetup(ctx, meetup_id = discord.Option(str)):
     
-    guild, guild_channel_list = await init_guild_variables()
-    bot_db, cur = get_db()
+    guild, guild_channel_list = await general_utils.init_guild_variables()
+    bot_db, cur = general_utils.get_db()
 
     try:
         _, author, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
@@ -172,7 +177,7 @@ async def join_meetup(ctx, meetup_id = discord.Option(str)):
         cur.execute(f"UPDATE meetups SET participants = ? WHERE id = ?", (participants_ser, meetup_id))
 
         meetup_embed = construct_meetup_embed(author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)    
-        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetups_channel = discord.utils.get(guild_channel_list, name = cfg.MEETUPS_CFG["meetups_channel"])
         meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
         
         await meetup_msg.edit(embed = meetup_embed, view = MeetupView())
@@ -183,8 +188,8 @@ async def join_meetup(ctx, meetup_id = discord.Option(str)):
 
 @meetups.command(description = "Leave a meetup you're in!")
 async def leave_meetup(ctx, meetup_id = discord.Option(str)):
-    guild, guild_channel_list = await init_guild_variables()
-    bot_db, cur = get_db()
+    guild, guild_channel_list = await general_utils.init_guild_variables()
+    bot_db, cur = general_utils.get_db()
 
     try:
         _, author, meetup_msg_id, meetup_desc, meetup_time, meetup_location, participants_ser = cur.execute("SELECT * FROM meetups WHERE id = ?", (meetup_id,)).fetchone()
@@ -205,7 +210,7 @@ async def leave_meetup(ctx, meetup_id = discord.Option(str)):
         cur.execute(f"UPDATE meetups SET participants = ? WHERE id = ?", (participants_ser, meetup_id))
 
         meetup_embed = construct_meetup_embed(author, meetup_id, meetup_desc, meetup_time, meetup_location, participants_ser)    
-        meetups_channel = discord.utils.get(guild_channel_list, name = MEETUPS_CFG["meetups_channel"])
+        meetups_channel = discord.utils.get(guild_channel_list, name = cfg.MEETUPS_CFG["meetups_channel"])
         meetup_msg = await meetups_channel.fetch_message(meetup_msg_id)
         
         await meetup_msg.edit(embed = meetup_embed, view = MeetupView())

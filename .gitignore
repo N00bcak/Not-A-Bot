@@ -1,6 +1,6 @@
 private_utils.py
 .env
-/__pycache__/
+__pycache__/
 storage.db
 .git
 NotABot_log.txt

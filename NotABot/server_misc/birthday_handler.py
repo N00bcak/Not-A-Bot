@@ -1,4 +1,7 @@
-from constants_imports_utils import *
+from NotABot.common import bot, log, cfg, general_utils
+import discord
+import datetime as dt
+import asyncio
 
 birthdays = bot.create_group("birthdays", "For telling your friends that they are now one year older! D:")
 
@@ -14,8 +17,8 @@ async def birthday_loop():
         
         # When it is midnight, run this routine:
         log.info(f"Oh boy, it's time to report birthdays for the date {dt.date.today().strftime('%d/%m')}!")
-        bot_db, cur = get_db()
-        guild, guild_channel_list = await init_guild_variables()
+        bot_db, cur = general_utils.get_db()
+        guild, guild_channel_list = await general_utils.init_guild_variables()
 
         birthday_babies = cur.execute("SELECT * FROM birthdays WHERE date = ?", (dt.date.today().strftime("%d/%m"),)).fetchall()
         
@@ -26,12 +29,12 @@ async def birthday_loop():
                 birthday_message += f"{user}\n"
             
             birthday_embed = discord.Embed(
-                                            color = BIRTHDAY_CFG["embed_color"],
+                                            color = cfg.BIRTHDAY_CFG["embed_color"],
                                             title = "Wish our dear friends a happy birthday!",
                                             description = birthday_message
                                             )
             
-            msg_channel = discord.utils.get(guild_channel_list, name = BIRTHDAY_CFG["birthday_channel"])
+            msg_channel = discord.utils.get(guild_channel_list, name = cfg.BIRTHDAY_CFG["birthday_channel"])
             await msg_channel.send(embed = birthday_embed)
         else:
             logging.info(f"It's nobody's birthday today :(. {dt.date.today()}")
@@ -42,7 +45,7 @@ async def birthday_loop():
 async def set_birthday(ctx: discord.ApplicationContext, date: str):
     
     log.info(f"{ctx.author.name} is trying to set their birthday.")
-    bot_db, cur = get_db()
+    bot_db, cur = general_utils.get_db()
 
     # We used to have a regex for this. But attempting a try-catch clause is simpler.
     try:
@@ -70,7 +73,7 @@ async def set_birthday(ctx: discord.ApplicationContext, date: str):
 @birthdays.command(description = "Remove your birthday D:")
 async def remove_birthday(ctx: discord.ApplicationContext):
     
-    bot_db, cur = get_db()
+    bot_db, cur =general_utils.get_db()
 
     log.info(f"{ctx.author.name} is trying to remove their birthday.")
     
