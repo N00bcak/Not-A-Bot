@@ -37,7 +37,7 @@ async def birthday_loop():
             msg_channel = discord.utils.get(guild_channel_list, name = cfg.BIRTHDAY_CFG["birthday_channel"])
             await msg_channel.send(embed = birthday_embed)
         else:
-            logging.info(f"It's nobody's birthday today :(. {dt.date.today()}")
+            log.info(f"It's nobody's birthday today :(. {dt.date.today()}")
         bot_db.close()
 
 

@@ -93,7 +93,7 @@ class BlackjackModel():
         while self.sum_in_hand(self.dealer_hand) < 17:
             self.deal(self.dealer_hand)
         # After a player stands, the game ends.
-        if ((self.hand_status(self.player_hand) == "bust" and self.hand_status(self.dealer_hand) == "bust") 
+        if ((self.hand_status(self.player_hand) != "bust" and self.hand_status(self.dealer_hand) == "bust") 
             or self.sum_in_hand(self.player_hand) > self.sum_in_hand(self.dealer_hand)):
             return 1 # Player Win
         elif self.sum_in_hand(self.player_hand) == self.sum_in_hand(self.dealer_hand):
@@ -180,6 +180,9 @@ def construct_blackjack_embed(bj_view: BlackjackView = None, bj_model: Blackjack
     if bj_model is None:
         bj_model = BlackjackModel()
         bj_model.start_game()
+        # Check for auto blackjack.
+        if bj_model.sum_in_hand(bj_model.player_hand) == 21:
+            game_state == 1
 
     title = "Blackjack"
     if game_state == 0 or game_state == 2:
@@ -200,6 +203,9 @@ def construct_blackjack_embed(bj_view: BlackjackView = None, bj_model: Blackjack
     bj_embed.add_field(name = f"Dealer's Hand (Total points: {bj_model.sum_in_hand(bj_model.dealer_hand)})", value = bj_model.rep_hand("Dealer", game_state), inline = False)
     bj_embed.add_field(name = f"Your Hand (Total points: {bj_model.sum_in_hand(bj_model.player_hand)})", value = bj_model.rep_hand("Player", game_state), inline = False)
     
+    if game_state == 1:
+        bj_view = None
+    
     return bj_model, bj_view, bj_embed
 
 @bot.command(aliases=['bj'])
@@ -212,4 +218,4 @@ async def blackjack(ctx: discord.ApplicationContext):
         bj_msg = await ctx.channel.send(embed = bj_embed, view = bj_view)
         # Create an entry tagged to the invoker containing all information necessary.
         temp_memory[ctx.author.mention] = {"msg_id": bj_msg.id, "model": bj_model}
-    await ctx.respond("Setting up your game...", ephemeral = True, delete_after = 1)
+        await ctx.respond("Setting up your game...", ephemeral = True, delete_after = 1)
