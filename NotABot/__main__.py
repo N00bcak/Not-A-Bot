@@ -1,5 +1,5 @@
 from NotABot.common import bot, log, TOKEN, cfg, general_utils
-from NotABot.server_misc import private_utils, pin_msgs, starboard, meetups_handler, birthday_handler, image_flipper
+from NotABot.server_misc import pin_msgs, starboard, meetups_handler, birthday_handler, image_flipper
 from NotABot.minigames import blackjack
 
 # This main file is the principal event listener for the bot. I'm not quite sure how to structure a file so here's how it's gonna go.
@@ -8,15 +8,17 @@ from NotABot.minigames import blackjack
 
 @bot.event
 async def on_message(message):
-    flag = await private_utils.func1(message)
+    #flag = await private_utils.func1(message)
+    pass
 
 @bot.event
 async def on_raw_message_edit(payload):
-    flag = await private_utils.func2(payload)
+    #flag = await private_utils.func2(payload)
+    pass
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    flag = await private_utils.func3(payload)
+    #flag = await private_utils.func3(payload)
     if not flag:
         # The emoji checks are done here, so the functions themselves don't need to ascertain the identity of the emoji.
         if payload.emoji.name in cfg.PIN_MSGS_CFG["emoji_list"]:

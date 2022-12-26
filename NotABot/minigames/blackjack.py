@@ -182,7 +182,7 @@ def construct_blackjack_embed(bj_view: BlackjackView = None, bj_model: Blackjack
         bj_model.start_game()
         # Check for auto blackjack.
         if bj_model.sum_in_hand(bj_model.player_hand) == 21:
-            game_state == 1
+            game_state = 1
 
     title = "Blackjack"
     if game_state == 0 or game_state == 2:
@@ -200,7 +200,7 @@ def construct_blackjack_embed(bj_view: BlackjackView = None, bj_model: Blackjack
                             color = color,
                             title = title
                             )
-    bj_embed.add_field(name = f"Dealer's Hand (Total points: {bj_model.sum_in_hand(bj_model.dealer_hand)})", value = bj_model.rep_hand("Dealer", game_state), inline = False)
+    bj_embed.add_field(name = f"Dealer's Hand (Total points: {bj_model.sum_in_hand(bj_model.dealer_hand) if game_state else '?'})", value = bj_model.rep_hand("Dealer", game_state), inline = False)
     bj_embed.add_field(name = f"Your Hand (Total points: {bj_model.sum_in_hand(bj_model.player_hand)})", value = bj_model.rep_hand("Player", game_state), inline = False)
     
     if game_state == 1:
