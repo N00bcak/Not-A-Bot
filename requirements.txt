@@ -1,0 +1,5 @@
+py-cord==2.0.0
+python-dotenv
+pycryptodome==3.10.1
+requests
+Pillow

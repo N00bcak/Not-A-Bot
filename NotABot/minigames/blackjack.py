@@ -35,7 +35,7 @@ class BlackjackView(discord.ui.View):
         temp_memory.pop(author)
 
     # "Hit" button
-    @discord.ui.button(label = "Hit", style = discord.ButtonStyle.primary)
+    @discord.ui.button(label = "Hit", style = discord.ButtonStyle.primary, custom_id = 'bjview:hit')
     async def hit_button_callback(self, button, interaction):
         ctx = await bot.get_application_context(interaction)
         bj_model = await self.retrieve_game_data(ctx)
@@ -46,7 +46,7 @@ class BlackjackView(discord.ui.View):
         await ctx.response.defer()
 
     # "Stand" button
-    @discord.ui.button(label = "Stand", style = discord.ButtonStyle.primary)
+    @discord.ui.button(label = "Stand", style = discord.ButtonStyle.primary, custom_id = 'bjview:stand')
     async def stand_button_callback(self, button, interaction):
         ctx = await bot.get_application_context(interaction)
         bj_model = await self.retrieve_game_data(ctx)
@@ -57,7 +57,7 @@ class BlackjackView(discord.ui.View):
         await ctx.response.defer()
 
     # "Fold" button
-    @discord.ui.button(label = "Fold", style = discord.ButtonStyle.red)
+    @discord.ui.button(label = "Fold", style = discord.ButtonStyle.red, custom_id = 'bjview:fold')
     async def fold_button_callback(self, button, interaction):
         ctx = await bot.get_application_context(interaction)
         bj_model = await self.retrieve_game_data(ctx)

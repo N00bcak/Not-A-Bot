@@ -43,6 +43,7 @@ async def image_flip(ctx: discord.ApplicationContext, \
                 return
 
         try:
+            await ctx.defer(invisible = False)
             # Basically, we rotate the image as desired, and try to fit the whole rotated image into the, well, Image.
             # We then use a black image to work out (approximately) where we should crop the target image.
             target_image = target_image.rotate(orientation_dict[orientation], expand = 1)
@@ -54,10 +55,10 @@ async def image_flip(ctx: discord.ApplicationContext, \
             target_image.resize(target_image_size, box = scaffold.getbbox())
             print("Great success!")
         except KeyError:
-            await ctx.send_response("Invalid orientation >:( (Don't tell Twitter I said that.)", ephemeral = True)
+            await ctx.send_followup("Invalid orientation >:( (Don't tell Twitter I said that.)", ephemeral = True)
             return
 
     with io.BytesIO() as buffer:
         target_image.save(buffer, "png")
         buffer.seek(0)
-        await ctx.send_response(file = discord.File(fp = buffer, filename = "image.png"))
+        await ctx.send_followup(file = discord.File(fp = buffer, filename = "image.png"))

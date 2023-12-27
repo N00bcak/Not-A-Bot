@@ -9,11 +9,6 @@ birthdays = bot.create_group("birthdays", "For telling your friends that they ar
 async def birthday_loop():
     
     while True:
-
-        tmwdatetime = dt.datetime.combine(dt.date.today() + dt.timedelta(days = 1), dt.time())
-        wait_sec = dt.timedelta(seconds = (tmwdatetime - dt.datetime.now()).seconds, microseconds = (tmwdatetime - dt.datetime.now()).microseconds)
-        log.info(f"We will update the birthday again on {dt.datetime.now() + wait_sec}.")
-        await asyncio.sleep(wait_sec.seconds + wait_sec.microseconds / 1000000)
         
         # When it is midnight, run this routine:
         log.info(f"Oh boy, it's time to report birthdays for the date {dt.date.today().strftime('%d/%m')}!")
@@ -36,6 +31,11 @@ async def birthday_loop():
             
             msg_channel = discord.utils.get(guild_channel_list, name = cfg.BIRTHDAY_CFG["birthday_channel"])
             await msg_channel.send(embed = birthday_embed)
+
+            tmwdatetime = dt.datetime.combine(dt.date.today() + dt.timedelta(days = 1), dt.time())
+            wait_sec = dt.timedelta(seconds = (tmwdatetime - dt.datetime.now()).seconds, microseconds = (tmwdatetime - dt.datetime.now()).microseconds)
+            log.info(f"We will update the birthday again on {dt.datetime.now() + wait_sec}.")
+            await asyncio.sleep(wait_sec.seconds + wait_sec.microseconds / 1000000)
         else:
             log.info(f"It's nobody's birthday today :(. {dt.date.today()}")
         bot_db.close()

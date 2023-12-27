@@ -31,3 +31,10 @@ def get_db():
     
     bot_db.commit()
     return bot_db, cur
+
+# Get only the alphanumeric characters of a string.
+def get_alphanumeric_characters(s: str):
+    s1 = ""
+    for c in s:
+        if c.isalnum(): s1 = s1 + c
+    return s1
